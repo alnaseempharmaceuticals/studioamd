@@ -13,7 +13,7 @@ import {z} from 'genkit';
 
 const InvoiceItemSchema = z.object({
   name: z.string().describe('The name of the item.'),
-  type: z.string().describe('The type of the item.'),
+  type: z.string().describe('The type of the item. This is not provided by the user and can be ignored.'),
   quantity: z.number().describe('The quantity of the item.'),
   unitPrice: z.number().describe('The unit price of the item.'),
 });
@@ -42,19 +42,19 @@ const prompt = ai.definePrompt({
   name: 'formatInvoicePrompt',
   input: {schema: InvoiceInputSchema},
   output: {schema: InvoiceOutputSchema},
-  prompt: `You are an AI assistant specialized in formatting invoices into visually appealing and well-structured tables. Given the customer's name, a list of items with their details (name, type, quantity, unit price), the amount received, and the invoice number, generate a markdown table representing the invoice. Also, calculate the total amount, and compute the balance due.
+  prompt: `You are an AI assistant specialized in formatting invoices into visually appealing and well-structured tables. Given the customer's name, a list of items with their details (name, quantity, unit price), the amount received, and the invoice number, generate a markdown table representing the invoice. Also, calculate the total amount, and compute the balance due. Do not include the 'type' field in the output table.
 
 Customer Name: {{{customerName}}}
 Invoice Number: {{{invoiceNumber}}}
 
 Items:
 {{#each items}}
-Name: {{{this.name}}}, Type: {{{this.type}}}, Quantity: {{{this.quantity}}}, Unit Price: {{{this.unitPrice}}}
+Name: {{{this.name}}}, Quantity: {{{this.quantity}}}, Unit Price: {{{this.unitPrice}}}
 {{/each}}
 
 Amount Received: {{{amountReceived}}}
 
-Output the formatted invoice as a markdown table, showing item details, total cost, the amount received, and the balance due. Make sure it is well structured and easy to read.
+Output the formatted invoice as a markdown table with columns for Item Name, Quantity, Unit Price, and Total. Calculate the total cost for each item. Then, show the overall total, the amount received, and the balance due. Make sure it is well structured and easy to read.
 `,
 });
 

@@ -17,7 +17,6 @@ import { AppLogo } from '@/components/icons';
 
 const itemSchema = z.object({
   name: z.string().min(1, 'اسم الصنف مطلوب'),
-  type: z.string().min(1, 'النوع مطلوب'),
   quantity: z.coerce.number().min(1, 'الكمية يجب أن تكون 1 على الأقل'),
   unitPrice: z.coerce.number().min(0.01, 'السعر يجب أن يكون أكبر من 0'),
 });
@@ -60,7 +59,7 @@ export default function Home() {
     resolver: zodResolver(invoiceFormSchema),
     defaultValues: {
       customerName: '',
-      items: [{ name: '', type: '', quantity: 1, unitPrice: 0 }],
+      items: [{ name: '', quantity: 1, unitPrice: 0 }],
       amountReceived: 0,
     },
   });
@@ -78,6 +77,7 @@ export default function Home() {
     
     const input: InvoiceInput = {
       ...data,
+      items: data.items.map(item => ({...item, type: 'N/A'})),
       invoiceNumber: invoiceNumber,
     };
 
@@ -136,16 +136,11 @@ export default function Home() {
                 <div className="space-y-4">
                     <h3 className="font-medium text-lg">الأصناف</h3>
                     {fields.map((field, index) => (
-                      <div key={field.id} className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto_auto_auto] gap-2 p-3 border rounded-md relative">
+                      <div key={field.id} className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_auto] gap-2 p-3 border rounded-md relative">
                         <div className="space-y-1">
                           <Label htmlFor={`items.${index}.name`}>اسم الصنف</Label>
                           <Input id={`items.${index}.name`} {...register(`items.${index}.name`)} placeholder="مثال: حبوب صداع" />
                           {errors.items?.[index]?.name && <p className="text-xs text-destructive">{errors.items[index]?.name?.message}</p>}
-                        </div>
-                         <div className="space-y-1">
-                          <Label htmlFor={`items.${index}.type`}>النوع</Label>
-                          <Input id={`items.${index}.type`} {...register(`items.${index}.type`)} placeholder="مثال: شريط" />
-                          {errors.items?.[index]?.type && <p className="text-xs text-destructive">{errors.items[index]?.type?.message}</p>}
                         </div>
                          <div className="space-y-1">
                           <Label htmlFor={`items.${index}.quantity`}>الكمية</Label>
@@ -168,7 +163,7 @@ export default function Home() {
                       </div>
                     ))}
                      {errors.items?.root && <p className="text-sm text-destructive">{errors.items.root.message}</p>}
-                     <Button type="button" variant="outline" onClick={() => append({ name: '', type: '', quantity: 1, unitPrice: 0 })}>
+                     <Button type="button" variant="outline" onClick={() => append({ name: '', quantity: 1, unitPrice: 0 })}>
                         <PlusCircle className="ms-2 h-4 w-4" />
                         إضافة صنف
                     </Button>
