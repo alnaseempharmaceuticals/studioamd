@@ -26,7 +26,7 @@ export function InvoiceDisplay({
 }: InvoiceDisplayProps) {
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    return new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR' }).format(amount);
   };
 
   const exportToPdf = () => {
@@ -34,7 +34,7 @@ export function InvoiceDisplay({
     if (invoiceElement) {
       // Temporarily change title for PDF export
       const cardTitle = invoiceElement.querySelector('[data-title="invoice-title"]') as HTMLElement;
-      const originalTitle = cardTitle.innerText;
+      const originalTitle = cardTitle?.innerText;
       if (cardTitle) {
         cardTitle.innerText = 'AlNaseem';
       }
@@ -42,9 +42,12 @@ export function InvoiceDisplay({
       html2canvas(invoiceElement, {
         scale: 2, // Increase scale for better quality
         useCORS: true, 
+        scrollY: -window.scrollY, // Fix for capturing only visible area
+        windowWidth: invoiceElement.scrollWidth,
+        windowHeight: invoiceElement.scrollHeight
       }).then(canvas => {
          // Change title back after canvas is created
-        if (cardTitle) {
+        if (cardTitle && originalTitle) {
           cardTitle.innerText = originalTitle;
         }
 
@@ -62,23 +65,19 @@ export function InvoiceDisplay({
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
         const canvasAspectRatio = canvasWidth / canvasHeight;
-        const pdfAspectRatio = pdfWidth / pdfHeight;
 
-        let finalCanvasWidth, finalCanvasHeight;
+        let finalCanvasWidth = pdfWidth;
+        let finalCanvasHeight = pdfWidth / canvasAspectRatio;
 
-        // Fit canvas to A5 page, maintaining aspect ratio
-        if (canvasAspectRatio > pdfAspectRatio) {
-            finalCanvasWidth = pdfWidth;
-            finalCanvasHeight = pdfWidth / canvasAspectRatio;
-        } else {
-            finalCanvasHeight = pdfHeight;
-            finalCanvasWidth = pdfHeight * canvasAspectRatio;
+        if (finalCanvasHeight > pdfHeight) {
+          finalCanvasHeight = pdfHeight;
+          finalCanvasWidth = pdfHeight * canvasAspectRatio;
         }
         
         const x = (pdfWidth - finalCanvasWidth) / 2;
         const y = (pdfHeight - finalCanvasHeight) / 2;
 
-        pdf.addImage(imgData, 'PNG', x, y, finalCanvasWidth, finalCanvasHeight);
+        pdf.addImage(imgData, 'PNG', x, y, finalCanvasWidth, finalCanvasHeight, undefined, 'FAST');
         pdf.save(`invoice-${invoiceNumber}.pdf`);
       });
     }
