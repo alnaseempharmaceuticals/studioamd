@@ -13,7 +13,6 @@ import {z} from 'genkit';
 
 const InvoiceItemSchema = z.object({
   name: z.string().describe('The name of the item.'),
-  type: z.string().describe('The type of the item. This is not provided by the user and can be ignored.'),
   quantity: z.number().describe('The quantity of the item.'),
   unitPrice: z.number().describe('The unit price of the item.'),
 });
@@ -65,11 +64,10 @@ const formatInvoiceFlow = ai.defineFlow(
     outputSchema: InvoiceOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-
-    // Calculate total amount and balance due here, since Handlebars cannot do calculations.
     const totalAmount = input.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
     const balanceDue = totalAmount - input.amountReceived;
+    
+    const {output} = await prompt(input);
 
     return {
       formattedInvoice: output!.formattedInvoice,
