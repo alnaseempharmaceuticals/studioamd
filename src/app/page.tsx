@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -9,11 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { formatInvoice, type InvoiceInput, type InvoiceOutput } from '@/ai/flows/format-invoice';
+import { formatInvoice, type InvoiceInput } from '@/ai/flows/format-invoice';
 import { PlusCircle, XCircle, Loader2 } from 'lucide-react';
-import { InvoiceDisplay } from '@/components/invoice-display';
 import { useToast } from '@/hooks/use-toast';
 import { AppLogo } from '@/components/icons';
+import { exportToPdf } from '@/lib/pdf';
 
 const itemSchema = z.object({
   name: z.string().min(1, 'Item name is required'),
@@ -30,12 +30,9 @@ const invoiceFormSchema = z.object({
 type InvoiceFormData = z.infer<typeof invoiceFormSchema>;
 
 export default function Home() {
-  const [invoiceOutput, setInvoiceOutput] = useState<InvoiceOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState<number>(1001);
-  const [currentInvoiceNumber, setCurrentInvoiceNumber] = useState<number | null>(null);
-  const [formValues, setFormValues] = useState<InvoiceFormData | null>(null);
-
+  
   const { toast } = useToast();
 
   useEffect(() => {
@@ -71,19 +68,24 @@ export default function Home() {
 
   const onSubmit = async (data: InvoiceFormData) => {
     setIsLoading(true);
-    setInvoiceOutput(null);
-    setFormValues(data);
-    setCurrentInvoiceNumber(invoiceNumber);
     
     const input: InvoiceInput = {
       ...data,
-      items: data.items.map(item => ({...item, type: 'N/A'})),
       invoiceNumber: invoiceNumber,
     };
 
     try {
       const result = await formatInvoice(input);
-      setInvoiceOutput(result);
+      const totalAmount = data.items.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0) ?? 0;
+      
+      await exportToPdf({
+        output: result,
+        customerName: data.customerName,
+        invoiceNumber: invoiceNumber,
+        totalAmount: totalAmount,
+        amountReceived: data.amountReceived
+      });
+      
       const nextInvoiceNumber = invoiceNumber + 1;
       setInvoiceNumber(nextInvoiceNumber);
       try {
@@ -104,8 +106,6 @@ export default function Home() {
     }
   };
 
-  const totalAmount = formValues?.items.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0) ?? 0;
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="py-6 px-4 md:px-8">
@@ -117,8 +117,8 @@ export default function Home() {
             </div>
         </div>
       </header>
-      <main className="container mx-auto px-4 md:px-8 pb-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <main className="container mx-auto px-4 md:px-8 pb-10 flex justify-center">
+        <div className="w-full max-w-2xl">
           <Card className="shadow-lg">
             <CardHeader>
               <CardTitle className="text-xl font-headline">Create New Invoice</CardTitle>
@@ -190,35 +190,6 @@ export default function Home() {
               </form>
             </CardContent>
           </Card>
-
-          <div className="space-y-8">
-            {isLoading && (
-              <Card className="shadow-lg animate-pulse">
-                <CardHeader>
-                  <CardTitle className="text-xl font-headline">Invoice</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="h-8 bg-muted rounded w-3/4"></div>
-                  <div className="h-4 bg-muted rounded w-1/2"></div>
-                  <Separator/>
-                  <div className="space-y-2">
-                    <div className="h-6 bg-muted rounded"></div>
-                    <div className="h-16 bg-muted rounded"></div>
-                    <div className="h-6 bg-muted rounded"></div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            {invoiceOutput && formValues && currentInvoiceNumber && (
-              <InvoiceDisplay 
-                output={invoiceOutput} 
-                customerName={formValues.customerName}
-                invoiceNumber={currentInvoiceNumber}
-                totalAmount={totalAmount}
-                amountReceived={formValues.amountReceived}
-              />
-            )}
-          </div>
         </div>
       </main>
     </div>
