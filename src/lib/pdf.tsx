@@ -1,59 +1,64 @@
+'use client';
+
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import { renderToStaticMarkup } from 'react-dom/server';
-import { InvoiceDisplay, type InvoiceDisplayProps } from "@/components/invoice-display";
+import { createRoot } from 'react-dom/client';
+import { InvoiceForPdf, type InvoiceDisplayProps } from "@/components/invoice-display";
 
-export const exportToPdf = async (props: InvoiceDisplayProps) => {
-    // Create a hidden element to render the component
-    const invoiceContainer = document.createElement('div');
-    invoiceContainer.style.position = 'absolute';
-    invoiceContainer.style.left = '-9999px';
-    invoiceContainer.style.width = '800px'; // A fixed width for consistent rendering
-    document.body.appendChild(invoiceContainer);
+export const exportToPdf = (props: InvoiceDisplayProps) => {
+    return new Promise<void>(async (resolve) => {
+        const invoiceContainer = document.createElement('div');
+        invoiceContainer.style.position = 'absolute';
+        invoiceContainer.style.left = '-9999px';
+        invoiceContainer.style.width = '800px';
+        document.body.appendChild(invoiceContainer);
 
-    // Render the React component to an HTML string and set it
-    const invoiceHtml = renderToStaticMarkup(<InvoiceDisplay {...props} />);
-    invoiceContainer.innerHTML = invoiceHtml;
-    
-    // Find the specific element to print
-    const invoiceElement = invoiceContainer.querySelector<HTMLElement>('#invoice-section-to-print');
-    
-    if (invoiceElement) {
-        const canvas = await html2canvas(invoiceElement, {
-            scale: 2, // Increase scale for better quality
-            useCORS: true,
-        });
+        const root = createRoot(invoiceContainer);
+        root.render(<InvoiceForPdf {...props} />);
 
-        const imgData = canvas.toDataURL('image/png');
-        
-        // A5 dimensions in mm: 148 x 210
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a5'
-        });
+        // Allow time for the component to render
+        setTimeout(async () => {
+            const invoiceElement = invoiceContainer.querySelector<HTMLElement>('#invoice-section-to-print');
+            
+            if (invoiceElement) {
+                const canvas = await html2canvas(invoiceElement, {
+                    scale: 2,
+                    useCORS: true,
+                });
 
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        const canvasAspectRatio = canvasWidth / canvasHeight;
+                const imgData = canvas.toDataURL('image/png');
+                
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a5'
+                });
 
-        let finalCanvasWidth = pdfWidth;
-        let finalCanvasHeight = pdfWidth / canvasAspectRatio;
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const canvasWidth = canvas.width;
+                const canvasHeight = canvas.height;
+                const canvasAspectRatio = canvasWidth / canvasHeight;
 
-        if (finalCanvasHeight > pdfHeight) {
-            finalCanvasHeight = pdfHeight;
-            finalCanvasWidth = pdfHeight * canvasAspectRatio;
-        }
-        
-        const x = (pdfWidth - finalCanvasWidth) / 2;
-        const y = (pdfHeight - finalCanvasHeight) / 2;
+                let finalCanvasWidth = pdfWidth;
+                let finalCanvasHeight = pdfWidth / canvasAspectRatio;
 
-        pdf.addImage(imgData, 'PNG', x, y, finalCanvasWidth, finalCanvasHeight, undefined, 'FAST');
-        pdf.save(`invoice-${props.invoiceNumber}.pdf`);
-    }
+                if (finalCanvasHeight > pdfHeight) {
+                    finalCanvasHeight = pdfHeight;
+                    finalCanvasWidth = pdfHeight * canvasAspectRatio;
+                }
+                
+                const x = (pdfWidth - finalCanvasWidth) / 2;
+                const y = (pdfHeight - finalCanvasHeight) / 2;
 
-    // Clean up the hidden element
-    document.body.removeChild(invoiceContainer);
+                pdf.addImage(imgData, 'PNG', x, y, finalCanvasWidth, finalCanvasHeight, undefined, 'FAST');
+                pdf.save(`invoice-${props.invoiceNumber}.pdf`);
+            }
+
+            // Clean up
+            root.unmount();
+            document.body.removeChild(invoiceContainer);
+            resolve();
+        }, 500); // A short delay to ensure rendering is complete
+    });
 };
