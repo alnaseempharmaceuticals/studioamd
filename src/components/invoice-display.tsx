@@ -26,7 +26,7 @@ export function InvoiceDisplay({
 }: InvoiceDisplayProps) {
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR' }).format(amount);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
 
   const exportToPdf = () => {
@@ -89,11 +89,11 @@ export function InvoiceDisplay({
         <CardHeader>
           <div className="flex justify-between items-start">
               <div>
-                  <CardTitle className="text-2xl font-headline" data-title="invoice-title">فاتورة</CardTitle>
-                  <CardDescription>رقم الفاتورة: #{invoiceNumber}</CardDescription>
+                  <CardTitle className="text-2xl font-headline" data-title="invoice-title">Invoice</CardTitle>
+                  <CardDescription>Invoice No: #{invoiceNumber}</CardDescription>
               </div>
-              <div className="text-left">
-                  <h3 className="font-semibold">العميل</h3>
+              <div className="text-right">
+                  <h3 className="font-semibold">Customer</h3>
                   <p className="text-muted-foreground">{customerName}</p>
               </div>
           </div>
@@ -105,16 +105,16 @@ export function InvoiceDisplay({
           <div className="w-full space-y-3">
               <Separator />
               <div className="flex justify-between">
-                  <span className="text-muted-foreground">الإجمالي</span>
+                  <span className="text-muted-foreground">Total</span>
                   <span className="font-medium">{formatCurrency(totalAmount)}</span>
               </div>
                <div className="flex justify-between">
-                  <span className="text-muted-foreground">المبلغ المستلم</span>
+                  <span className="text-muted-foreground">Amount Received</span>
                   <span className="font-medium">{formatCurrency(amountReceived)}</span>
               </div>
               <Separator />
               <div className="flex justify-between font-bold text-lg">
-                  <span className="text-primary">المبلغ المتبقي</span>
+                  <span className="text-primary">Balance Due</span>
                   <span className="text-primary">{formatCurrency(output.balanceDue)}</span>
               </div>
           </div>
@@ -122,8 +122,8 @@ export function InvoiceDisplay({
       </div>
        <CardFooter className="border-t pt-6">
         <Button onClick={exportToPdf} className="w-full">
-          <Download className="ms-2 h-4 w-4" />
-          تصدير كملف PDF
+          <Download className="me-2 h-4 w-4" />
+          Export as PDF
         </Button>
       </CardFooter>
     </Card>

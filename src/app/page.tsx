@@ -16,15 +16,15 @@ import { useToast } from '@/hooks/use-toast';
 import { AppLogo } from '@/components/icons';
 
 const itemSchema = z.object({
-  name: z.string().min(1, 'اسم الصنف مطلوب'),
-  quantity: z.coerce.number().min(1, 'الكمية يجب أن تكون 1 على الأقل'),
-  unitPrice: z.coerce.number().min(0.01, 'السعر يجب أن يكون أكبر من 0'),
+  name: z.string().min(1, 'Item name is required'),
+  quantity: z.coerce.number().min(1, 'Quantity must be at least 1'),
+  unitPrice: z.coerce.number().min(0.01, 'Price must be greater than 0'),
 });
 
 const invoiceFormSchema = z.object({
-  customerName: z.string().min(1, 'اسم العميل مطلوب'),
-  items: z.array(itemSchema).min(1, 'يجب إضافة صنف واحد على الأقل'),
-  amountReceived: z.coerce.number().min(0, 'المبلغ المستلم لا يمكن أن يكون سالباً'),
+  customerName: z.string().min(1, 'Customer name is required'),
+  items: z.array(itemSchema).min(1, 'At least one item must be added'),
+  amountReceived: z.coerce.number().min(0, 'Amount received cannot be negative'),
 });
 
 type InvoiceFormData = z.infer<typeof invoiceFormSchema>;
@@ -96,8 +96,8 @@ export default function Home() {
       console.error('Failed to generate invoice:', error);
       toast({
         variant: 'destructive',
-        title: 'خطأ',
-        description: 'فشل في إنشاء الفاتورة. يرجى المحاولة مرة أخرى.',
+        title: 'Error',
+        description: 'Failed to generate invoice. Please try again.',
       });
     } finally {
       setIsLoading(false);
@@ -113,7 +113,7 @@ export default function Home() {
             <AppLogo className="h-10 w-10 text-primary" />
             <div>
                 <h1 className="text-2xl md:text-3xl font-bold font-headline text-primary">InvoiceEase</h1>
-                <p className="text-muted-foreground">مستودع النسيم للأدوية</p>
+                <p className="text-muted-foreground">AlNaseem Pharmacy</p>
             </div>
         </div>
       </header>
@@ -121,34 +121,34 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle className="text-xl font-headline">إنشاء فاتورة جديدة</CardTitle>
+              <CardTitle className="text-xl font-headline">Create New Invoice</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="customerName">اسم العميل</Label>
-                  <Input id="customerName" {...register('customerName')} placeholder="مثال: أحمد" />
+                  <Label htmlFor="customerName">Customer Name</Label>
+                  <Input id="customerName" {...register('customerName')} placeholder="e.g., John Doe" />
                   {errors.customerName && <p className="text-sm text-destructive">{errors.customerName.message}</p>}
                 </div>
                 
                 <Separator />
 
                 <div className="space-y-4">
-                    <h3 className="font-medium text-lg">الأصناف</h3>
+                    <h3 className="font-medium text-lg">Items</h3>
                     {fields.map((field, index) => (
                       <div key={field.id} className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_auto] gap-2 p-3 border rounded-md relative">
                         <div className="space-y-1">
-                          <Label htmlFor={`items.${index}.name`}>اسم الصنف</Label>
-                          <Input id={`items.${index}.name`} {...register(`items.${index}.name`)} placeholder="مثال: حبوب صداع" />
+                          <Label htmlFor={`items.${index}.name`}>Item Name</Label>
+                          <Input id={`items.${index}.name`} {...register(`items.${index}.name`)} placeholder="e.g., Aspirin" />
                           {errors.items?.[index]?.name && <p className="text-xs text-destructive">{errors.items[index]?.name?.message}</p>}
                         </div>
                          <div className="space-y-1">
-                          <Label htmlFor={`items.${index}.quantity`}>الكمية</Label>
+                          <Label htmlFor={`items.${index}.quantity`}>Quantity</Label>
                           <Input type="number" id={`items.${index}.quantity`} {...register(`items.${index}.quantity`)} defaultValue={1} />
                            {errors.items?.[index]?.quantity && <p className="text-xs text-destructive">{errors.items[index]?.quantity?.message}</p>}
                         </div>
                          <div className="space-y-1">
-                          <Label htmlFor={`items.${index}.unitPrice`}>السعر</Label>
+                          <Label htmlFor={`items.${index}.unitPrice`}>Price</Label>
                           <Input type="number" step="0.01" id={`items.${index}.unitPrice`} {...register(`items.${index}.unitPrice`)} />
                            {errors.items?.[index]?.unitPrice && <p className="text-xs text-destructive">{errors.items[index]?.unitPrice?.message}</p>}
                         </div>
@@ -156,7 +156,7 @@ export default function Home() {
                             {fields.length > 1 && (
                             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-destructive hover:text-destructive">
                                 <XCircle className="h-5 w-5" />
-                                <span className="sr-only">إزالة</span>
+                                <span className="sr-only">Remove</span>
                             </Button>
                             )}
                         </div>
@@ -164,15 +164,15 @@ export default function Home() {
                     ))}
                      {errors.items?.root && <p className="text-sm text-destructive">{errors.items.root.message}</p>}
                      <Button type="button" variant="outline" onClick={() => append({ name: '', quantity: 1, unitPrice: 0 })}>
-                        <PlusCircle className="ms-2 h-4 w-4" />
-                        إضافة صنف
+                        <PlusCircle className="me-2 h-4 w-4" />
+                        Add Item
                     </Button>
                 </div>
                 
                 <Separator />
                 
                 <div className="space-y-2">
-                  <Label htmlFor="amountReceived">المبلغ المستلم</Label>
+                  <Label htmlFor="amountReceived">Amount Received</Label>
                   <Input type="number" step="0.01" id="amountReceived" {...register('amountReceived')} />
                   {errors.amountReceived && <p className="text-sm text-destructive">{errors.amountReceived.message}</p>}
                 </div>
@@ -180,11 +180,11 @@ export default function Home() {
                 <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={isLoading}>
                   {isLoading ? (
                     <>
-                      <Loader2 className="ms-2 h-4 w-4 animate-spin" />
-                      جاري الإنشاء...
+                      <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                      Generating...
                     </>
                   ) : (
-                    'إنشاء الفاتورة'
+                    'Generate Invoice'
                   )}
                 </Button>
               </form>
@@ -195,7 +195,7 @@ export default function Home() {
             {isLoading && (
               <Card className="shadow-lg animate-pulse">
                 <CardHeader>
-                  <CardTitle className="text-xl font-headline">الفاتورة</CardTitle>
+                  <CardTitle className="text-xl font-headline">Invoice</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="h-8 bg-muted rounded w-3/4"></div>
