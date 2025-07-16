@@ -107,7 +107,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen text-foreground">
       <header className="py-6 px-4 md:px-8">
         <div className="container mx-auto flex items-center gap-4">
             <AppLogo className="h-10 w-10 text-primary" />
@@ -119,7 +119,7 @@ export default function Home() {
       </header>
       <main className="container mx-auto px-4 md:px-8 pb-10 flex justify-center">
         <div className="w-full max-w-2xl">
-          <Card className="shadow-lg">
+          <Card className="shadow-lg bg-card/50 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-xl font-headline">Create New Invoice</CardTitle>
             </CardHeader>
