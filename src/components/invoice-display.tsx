@@ -26,16 +26,28 @@ export function InvoiceDisplay({
 }: InvoiceDisplayProps) {
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR' }).format(amount);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
 
   const exportToPdf = () => {
     const invoiceElement = document.getElementById('invoice-section-to-print');
     if (invoiceElement) {
+      // Temporarily change title for PDF export
+      const cardTitle = invoiceElement.querySelector('[data-title="invoice-title"]') as HTMLElement;
+      const originalTitle = cardTitle.innerText;
+      if (cardTitle) {
+        cardTitle.innerText = 'AlNaseem';
+      }
+
       html2canvas(invoiceElement, {
         scale: 2, // Increase scale for better quality
         useCORS: true, 
       }).then(canvas => {
+         // Change title back after canvas is created
+        if (cardTitle) {
+          cardTitle.innerText = originalTitle;
+        }
+
         const imgData = canvas.toDataURL('image/png');
         
         // A5 dimensions in mm: 148 x 210
@@ -78,7 +90,7 @@ export function InvoiceDisplay({
         <CardHeader>
           <div className="flex justify-between items-start">
               <div>
-                  <CardTitle className="text-2xl font-headline">فاتورة</CardTitle>
+                  <CardTitle className="text-2xl font-headline" data-title="invoice-title">فاتورة</CardTitle>
                   <CardDescription>رقم الفاتورة: #{invoiceNumber}</CardDescription>
               </div>
               <div className="text-left">
