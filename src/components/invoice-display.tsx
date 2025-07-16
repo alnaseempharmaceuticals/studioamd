@@ -27,16 +27,16 @@ export function InvoiceDisplay({
     
   return (
     <Card className="shadow-lg" id="invoice-section">
-      <div id="invoice-section-to-print" className="bg-card text-card-foreground">
+      <div id="invoice-section-to-print" className="bg-white text-black">
         <CardHeader>
           <div className="flex justify-between items-start">
               <div>
                   <CardTitle className="text-2xl font-headline" data-title="invoice-title">AlNaseem</CardTitle>
-                  <CardDescription>Invoice No: #{invoiceNumber}</CardDescription>
+                  <CardDescription className="text-gray-600">Invoice No: #{invoiceNumber}</CardDescription>
               </div>
               <div className="text-right">
                   <h3 className="font-semibold">Customer</h3>
-                  <p className="text-muted-foreground">{customerName}</p>
+                  <p className="text-gray-500">{customerName}</p>
               </div>
           </div>
         </CardHeader>
@@ -45,19 +45,19 @@ export function InvoiceDisplay({
         </CardContent>
         <CardFooter>
           <div className="w-full space-y-3">
-              <Separator />
+              <Separator className="bg-gray-300" />
               <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total</span>
+                  <span className="text-gray-500">Total</span>
                   <span className="font-medium">{formatCurrency(totalAmount)}</span>
               </div>
                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Amount Received</span>
+                  <span className="text-gray-500">Amount Received</span>
                   <span className="font-medium">{formatCurrency(amountReceived)}</span>
               </div>
-              <Separator />
+              <Separator className="bg-gray-300"/>
               <div className="flex justify-between font-bold text-lg">
-                  <span className="text-primary">Balance Due</span>
-                  <span className="text-primary">{formatCurrency(output.balanceDue)}</span>
+                  <span className="text-blue-600">Balance Due</span>
+                  <span className="text-blue-600">{formatCurrency(output.balanceDue)}</span>
               </div>
           </div>
         </CardFooter>
